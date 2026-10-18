@@ -39,6 +39,16 @@ class ActionMailerCloudflare::DeliveryMethodTest < ActiveSupport::TestCase
     assert_not_includes request.json["mime_message"], "hidden@example.com"
   end
 
+  test "a plain Mail message sends through the class, without ActionMailer" do
+    message = Mail.new(from: "notifications@send.example.com", to: "a@example.com", subject: "Hi", body: "Hello")
+    message.delivery_method ActionMailerCloudflare::DeliveryMethod, transport: @transport, account_id: ACCOUNT_ID, api_token: "test-token"
+
+    message.deliver
+
+    assert_equal [ "a@example.com" ], @transport.sent.sole.json["recipients"]
+    assert_equal "Bearer test-token", @transport.sent.sole.headers["Authorization"]
+  end
+
   test "an em dash and an ampersand reach Cloudflare intact" do
     TestMailer.hello(subject: "Fish & Chips — today", body: "Lunch — $12 & up").deliver_now
 
