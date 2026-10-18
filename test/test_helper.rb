@@ -1,0 +1,6 @@
+require "minitest/autorun"
+require "active_support"
+require "active_support/test_case"
+require "action_mailer"
+require "actionmailer-cloudflare"
+require "action_mailer_cloudflare/fake_transport"
