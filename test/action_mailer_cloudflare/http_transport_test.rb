@@ -51,13 +51,19 @@ class ActionMailerCloudflare::HttpTransportTest < ActiveSupport::TestCase
 
     def with_net_http_start(captured, connect)
       original = Net::HTTP.method(:start)
-      Net::HTTP.singleton_class.define_method(:start) do |*args, **kwargs, &block|
+      replace_net_http_start do |*args, **kwargs, &block|
         captured[:args] = args
         captured[:kwargs] = kwargs
         block.call(connect.call)
       end
       yield
     ensure
-      Net::HTTP.singleton_class.define_method(:start, original)
+      replace_net_http_start(&original)
+    end
+
+    # Removing first keeps ruby -w from warning about the redefinition.
+    def replace_net_http_start(&body)
+      Net::HTTP.singleton_class.remove_method(:start)
+      Net::HTTP.singleton_class.define_method(:start, &body)
     end
 end
